@@ -63,6 +63,12 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
+        
+        /* Estilo específico para el selector de filtro por propietario */
+        #filtroPropietarioSelect {
+            max-width: 350px;
+            margin-bottom: 15px;
+        }
 
         button {
             padding: 10px 15px;
@@ -145,15 +151,44 @@
             color: #666;
             font-style: italic;
         }
+
+        /* Estilo para las propiedades asociadas dentro del listado de propietarios */
+        .propiedades-asociadas {
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-left: 3px solid #f90;
+            background-color: #fff3e0; /* Naranja muy claro */
+            font-size: 0.85em;
+        }
+
+        .propiedades-asociadas ul {
+            list-style: disc; /* Usar bullet points para la lista de props */
+            padding-left: 20px;
+        }
         
+        .propiedades-asociadas ul li {
+            border: none;
+            background: transparent;
+            padding: 2px 0;
+            margin: 0;
+            font-size: 1em;
+        }
+
         /* === ESTILOS PARA FILTROS === */
         .filter-controls {
             margin-bottom: 20px;
             padding: 10px;
             background-color: #e9ecef;
             border-radius: 4px;
-            display: flex;
+            /* Flex para los filtros de Venta/Alquiler */
+            display: flex; 
             gap: 10px;
+        }
+        
+        .owner-filter {
+            /* Separar el filtro por propietario */
+            display: block;
+            margin-bottom: 20px;
         }
 
         .btn-filter {
@@ -175,6 +210,22 @@
             color: white;
             font-weight: bold;
             border-color: #0056b3;
+        }
+        
+        /* Mensaje de estado (éxito o error) */
+        #statusMessage {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            color: white;
+            display: none;
+            font-weight: bold;
+        }
+        .status-success {
+            background-color: #28a745;
+        }
+        .status-error {
+            background-color: #dc3545;
         }
     </style>
 </head>
@@ -219,22 +270,24 @@
             <div id="form-propiedad-container" style="display: none;">
                 <form id="formPropiedad">
                     
+                    <!-- Mensaje de estado para el formulario de propiedades -->
+                    <div id="statusMessage" style="display: none;"></div>
+                    
                     <!-- CAMPOS DE PROPIEDAD -->
                     <h4>Datos de la Propiedad</h4>
                     <div class="form-group"><label for="tipoOperacion">Tipo de Operación:</label><select id="tipoOperacion" required><option value="">-- Seleccionar --</option><option value="Venta">Venta</option><option value="Alquiler">Alquiler</option></select></div>
                     <div class="form-group"><label for="direccion">Dirección:</label><input type="text" id="direccion" placeholder="C/ Ejemplo 123" required></div>
                     <div class="form-group"><label for="precio">Precio (€):</label><input type="number" id="precio" placeholder="Ej: 350000" required></div>
                     <div class="form-group"><label for="estado">Estado:</label><select id="estado" required><option value="Captada">Captada</option><option value="En Visitas">En Visitas</option><option value="Reservada">Reservada</option><option value="Vendida/Alquilada">Vendida/Alquilada</option></select></div>
-                    <!-- CAMPO DE OBSERVACIONES DE PROPIEDAD ELIMINADO -->
 
                     <hr style="margin: 20px 0; border-top: 1px dashed #ccc;">
                     
                     <!-- CAMPOS DEL PROPIETARIO AHORA INCLUIDOS -->
                     <h4>Datos del Propietario (Vinculado)</h4>
+                    <p style="font-size: 0.9em; color: #6c757d;">*Si el teléfono ya existe, la propiedad se vinculará automáticamente al propietario registrado. El nombre y las observaciones nuevas serán ignoradas en ese caso.</p>
                     <div class="form-group"><label for="propPropietarioNombre">Nombre del Propietario:</label><input type="text" id="propPropietarioNombre" required></div>
                     <div class="form-group"><label for="propPropietarioTelefono">Teléfono:</label><input type="text" id="propPropietarioTelefono" placeholder="Ej: +34 600..." required></div>
-                    <!-- CAMPO DE PREFERENCIA DE PROPIETARIO ELIMINADO -->
-                    <div class="form-group"><label for="propPropietarioObservaciones">Observaciones:</label><textarea id="propPropietarioObservaciones" rows="3" placeholder="Observaciones sobre el trato o historial del propietario..."></textarea></div>
+                    <div class="form-group"><label for="propPropietarioObservaciones">Observaciones:</label><textarea id="propPropietarioObservaciones" rows="3" placeholder="Notas sobre el trato o historial del propietario..."></textarea></div>
                     
                     <button type="submit" id="btnGuardar">Guardar Captación Completa</button>
                 </form>
@@ -267,13 +320,20 @@
                 <button onclick="showView('home-view')" class="btn-back">🏠 Volver al Inicio</button>
             </div>
             
-            <!-- EL FORMULARIO DE AÑADIR PROPIETARIO FUE ELIMINADO DE AQUÍ -->
-            
             <hr>
             <h3>Listado de Propietarios</h3>
 
-            <!-- FILTROS DE PROPIETARIOS (Ajustados para filtrar por tipo de Propiedad asociada) -->
-            <div class="filter-controls">
+            <!-- NUEVO FILTRO DE PROPIETARIOS POR TELÉFONO -->
+            <div class="filter-controls owner-filter">
+                <label for="filtroPropietarioSelect" style="display: block; margin-bottom: 5px;">Filtrar por Propietario y ver su cartera (Teléfono):</label>
+                <select id="filtroPropietarioSelect" onchange="filterPropertiesByOwner(this.value)">
+                    <option value="todos">Mostrar todos los propietarios</option>
+                    <!-- Opciones se poblarán con JS -->
+                </select>
+            </div>
+
+            <!-- FILTROS PRINCIPALES DE PROPIETARIOS -->
+            <div class="filter-controls" id="propietarios-main-filters">
                 <button onclick="setFilter('propietarios', 'Venta', this)" class="btn-filter" data-filter="Venta">Con Propiedades de Venta</button>
                 <button onclick="setFilter('propietarios', 'Alquiler', this)" class="btn-filter" data-filter="Alquiler">Con Propiedades de Alquiler</button>
                 <button onclick="setFilter('propietarios', 'todos', this)" class="btn-filter active-filter" data-filter="todos">Mostrar Todos</button>
@@ -344,10 +404,12 @@
             propietarios: 'todos',
             clientes: 'todos'
         };
+        
+        // El filtro de propietario específico tiene su propia clave
+        let FILTRO_PROPIETARIO_ACTIVO = 'todos'; 
 
         function generarID() {
             // Genera un ID único simple basado en el tiempo
-            // Usamos un número alto (ej. Date.now()) para IDs de LocalStorage
             return Date.now(); 
         }
         
@@ -360,9 +422,8 @@
             };
             
             const entityName = entityMap[containerId];
-            if (!entityName) return; // Si no es un contenedor con botón de toggle, salimos
+            if (!entityName) return; 
 
-            // Calculamos el ID del botón dinámicamente
             let buttonIdPart = containerId.replace('form-', '').replace('-container', '');
             buttonIdPart = buttonIdPart.charAt(0).toUpperCase() + buttonIdPart.slice(1);
             const button = document.getElementById(`btnToggle${buttonIdPart}`);
@@ -375,13 +436,26 @@
                 button.textContent = `➕ Añadir ${entityName}`;
             }
         }
+        
+        // Función para mostrar mensajes de estado
+        function showStatus(message, type = 'success', containerId = 'statusMessage') {
+            const container = document.getElementById(containerId);
+            container.textContent = message;
+            container.className = type === 'success' ? 'status-success' : 'status-error';
+            container.style.display = 'block';
+            
+            // Ocultar el mensaje después de 5 segundos
+            setTimeout(() => {
+                container.style.display = 'none';
+                container.textContent = '';
+            }, 5000);
+        }
 
 
         // ====================================================================
         // 2. FUNCIONES DE PERSISTENCIA (CRUD: Get/Save)
         // ====================================================================
 
-        // Funciones para Propiedades
         function getPropiedades() {
             const data = localStorage.getItem(PROPIEDADES_KEY);
             return data ? JSON.parse(data) : [];
@@ -391,7 +465,6 @@
             localStorage.setItem(PROPIEDADES_KEY, JSON.stringify(propiedades));
         }
         
-        // Funciones para Propietarios
         function getPropietarios() {
             const data = localStorage.getItem(PROPIETARIOS_KEY);
             return data ? JSON.parse(data) : [];
@@ -401,13 +474,16 @@
             localStorage.setItem(PROPIETARIOS_KEY, JSON.stringify(propietarios));
         }
 
-        // Función auxiliar para obtener un propietario por su ID
         function getPropietarioById(id, todosPropietarios) {
-            // Se le pasa el array completo para evitar leer localStorage en cada iteración
             return todosPropietarios.find(p => p.id === id);
         }
         
-        // Funciones para Clientes
+        function getPropietarioByTelefono(telefono, todosPropietarios) {
+            // Normalizar el teléfono para la búsqueda (simplemente quitamos espacios o guiones si los hubiera, aunque no se recomienda en un entorno real)
+            const normalizedTelefono = telefono.trim(); 
+            return todosPropietarios.find(p => p.telefono.trim() === normalizedTelefono);
+        }
+        
         function getClientes() {
             const data = localStorage.getItem(CLIENTES_KEY);
             return data ? JSON.parse(data) : [];
@@ -432,29 +508,32 @@
                 return;
             }
 
-            // Traer todos los propietarios una sola vez para vincular el nombre
             const todosPropietarios = getPropietarios();
 
             propiedadesAMostrar.forEach(prop => {
                 const li = document.createElement('li');
                 const tipoClase = prop.tipoOperacion === 'Venta' ? 'tag-venta' : 'tag-alquiler';
                 
-                // Buscar el propietario vinculado
                 const propietario = getPropietarioById(prop.propietarioId, todosPropietarios);
-                const nombrePropietario = propietario ? 
-                    `<span style="color: #6c757d; font-size: 0.9em;">(Propietario: ${propietario.nombre})</span>` : 
-                    '<span style="color: #dc3545; font-size: 0.9em;">(Propietario Desconocido)</span>';
+                
+                let infoPropietario = '';
+                let observacionPropietario = '';
 
-                // Usamos la observación del Propietario (si existe) ya que la de propiedad fue eliminada
-                const observacionPropietario = propietario ? propietario.observaciones : '';
+                if (propietario) {
+                    // Incluir el teléfono del propietario
+                    infoPropietario = `<span style="color: #6c757d; font-size: 0.9em;">(Propietario: ${propietario.nombre} / 📞 ${propietario.telefono})</span>`;
+                    observacionPropietario = propietario.observaciones;
+                } else {
+                    infoPropietario = '<span style="color: #dc3545; font-size: 0.9em;">(Propietario Desconocido)</span>';
+                }
 
                 li.innerHTML = `
                     <span class="${tipoClase}">[${prop.tipoOperacion}]</span>
                     <strong>${prop.direccion}</strong> 
                     - Precio: ${prop.precio.toLocaleString('es-ES')}€ 
                     (Estado: ${prop.estado})
-                    ${nombrePropietario}
-                    ${observacionPropietario ? `<br><small>Observaciones: ${observacionPropietario}</small>` : ''}
+                    ${infoPropietario}
+                    ${observacionPropietario ? `<br><small>Notas de Propietario: ${observacionPropietario}</small>` : ''}
                 `;
                 listadoUL.appendChild(li);
             });
@@ -469,15 +548,36 @@
                 listadoUL.innerHTML = '<li>No hay propietarios registrados con el filtro actual.</li>';
                 return;
             }
+            
+            const todasPropiedades = getPropiedades();
 
             propietariosAMostrar.forEach(p => {
-                const li = document.createElement('li'); // <<<< FIX: Crear el elemento li
-                // NOTA: Ya no hay 'preferencia', usamos un ícono genérico
+                const li = document.createElement('li');
                 const prefijo = '👤'; 
                 
-                // Mostrando Nombre, Teléfono y Observaciones (como Notas)
-                li.innerHTML = `${prefijo} <strong>${p.nombre}</strong> - Tf: ${p.telefono}
-                    ${p.observaciones ? `<br><small>Observaciones: ${p.observaciones}</small>` : ''}`;
+                // Información principal del propietario
+                let htmlPropietario = `${prefijo} <strong>${p.nombre}</strong> - Contacto: ${p.telefono}`;
+                htmlPropietario += p.observaciones ? `<br><small>Notas: ${p.observaciones}</small>` : '';
+
+                // Listar propiedades asociadas
+                const propiedadesDelPropietario = todasPropiedades.filter(prop => prop.propietarioId === p.id);
+                
+                if (propiedadesDelPropietario.length > 0) {
+                    let listaPropsHtml = '<div class="propiedades-asociadas"><strong>Propiedades Asociadas:</strong><ul>';
+                    propiedadesDelPropietario.forEach(prop => {
+                        const tipoClase = prop.tipoOperacion === 'Venta' ? 'tag-venta' : 'tag-alquiler';
+                        listaPropsHtml += `<li>
+                            <span class="${tipoClase}">[${prop.tipoOperacion}]</span> 
+                            ${prop.direccion} | ${prop.precio.toLocaleString('es-ES')}€
+                        </li>`;
+                    });
+                    listaPropsHtml += '</ul></div>';
+                    htmlPropietario += listaPropsHtml;
+                } else {
+                    htmlPropietario += '<div class="propiedades-asociadas">No tiene propiedades activas.</div>';
+                }
+
+                li.innerHTML = htmlPropietario;
                 listadoUL.appendChild(li);
             });
         }
@@ -496,11 +596,75 @@
                 const li = document.createElement('li');
                 const tipoClase = c.perfil === 'Comprador' ? '💰' : '📝';
                 li.innerHTML = `${tipoClase} <strong>${c.nombre}</strong> (Busca: ${c.perfil}) - Presupuesto: ${c.presupuestoMax.toLocaleString('es-ES')}€
-                    ${c.observaciones ? `<br><small>Observaciones: ${c.observaciones}</small>` : ''}`;
+                    ${c.observaciones ? `<br><small>Notas: ${c.observaciones}</small>` : ''}`;
                 listadoUL.appendChild(li);
             });
         }
         
+        /**
+         * Rellena el selector de filtro por propietario con todos los propietarios existentes.
+         */
+        function poblarFiltroPropietarios() {
+            const select = document.getElementById('filtroPropietarioSelect');
+            if (!select) return;
+            
+            const propietarios = getPropietarios();
+            
+            // Guardar la opción actual para mantener la selección
+            const valorActual = select.value;
+            
+            // Limpiar opciones anteriores
+            select.innerHTML = '<option value="todos">Mostrar todos los propietarios</option>'; 
+
+            propietarios.forEach(p => {
+                const option = document.createElement('option');
+                // Usamos el teléfono como valor de filtro
+                option.value = p.telefono; 
+                option.textContent = `${p.nombre} (📞 ${p.telefono})`;
+                select.appendChild(option);
+            });
+            
+            // Restaurar la opción si todavía existe
+            if (valorActual && getPropietarioByTelefono(valorActual, propietarios)) {
+                 select.value = valorActual;
+                 // Si se restaura, debemos reactivar el filtro de propietario específico
+                 filterPropertiesByOwner(valorActual); 
+            } else {
+                 select.value = 'todos';
+                 // Si volvemos a 'todos', mostramos el listado normal
+                 aplicarFiltroYRenderizar('propietarios');
+            }
+        }
+        
+        /**
+         * Filtra la lista de propietarios para mostrar solo las propiedades de uno específico.
+         */
+        function filterPropertiesByOwner(telefono) {
+            FILTRO_PROPIETARIO_ACTIVO = telefono;
+
+            if (telefono === 'todos') {
+                // Si seleccionamos "Mostrar todos", reseteamos y aplicamos el filtro principal
+                aplicarFiltroYRenderizar('propietarios'); 
+                // Mostrar los filtros principales de Venta/Alquiler
+                document.getElementById('propietarios-main-filters').style.display = 'flex'; 
+                return;
+            }
+            
+            // Ocultar los filtros principales al seleccionar un propietario específico
+            document.getElementById('propietarios-main-filters').style.display = 'none';
+
+            const todosPropietarios = getPropietarios();
+            const propietarioSeleccionado = getPropietarioByTelefono(telefono, todosPropietarios);
+            
+            if (propietarioSeleccionado) {
+                // Renderizar solo el propietario seleccionado.
+                renderizarPropietarios([propietarioSeleccionado]);
+            } else {
+                // Si no se encuentra (caso extraño), mostrar un mensaje.
+                document.getElementById('listadoPropietarios').innerHTML = '<li>Propietario no encontrado.</li>';
+            }
+        }
+
         // Función central para aplicar el filtro y llamar al renderizado
         function aplicarFiltroYRenderizar(entidad) {
             let datos;
@@ -518,21 +682,34 @@
                     datosFiltrados = datos.filter(item => item.tipoOperacion === filtro);
                 }
             } else if (entidad === 'propietarios') {
-                datos = getPropietarios();
-                funcionRender = renderizarPropietarios;
-                const todasPropiedades = getPropiedades();
+                // Resetear el filtro de propietario específico si aplicamos Venta/Alquiler, 
+                // A MENOS que se esté llamando explícitamente desde showView con un propietario activo.
                 
-                datosFiltrados = datos;
-                if (filtro !== 'todos') {
-                    // Lógica: Solo mostrar propietarios que tienen al menos una propiedad del tipo de filtro
-                    const propietariosConPropiedadesFiltradas = todasPropiedades
-                        .filter(prop => prop.tipoOperacion === filtro)
-                        .map(prop => prop.propietarioId);
+                if (FILTRO_PROPIETARIO_ACTIVO === 'todos') {
+                    document.getElementById('filtroPropietarioSelect').value = 'todos';
+                    document.getElementById('propietarios-main-filters').style.display = 'flex';
 
-                    // Filtrar la lista de propietarios solo por aquellos que tienen el ID en la lista anterior
-                    datosFiltrados = datos.filter(propietario => 
-                        propietariosConPropiedadesFiltradas.includes(propietario.id)
-                    );
+                    datos = getPropietarios();
+                    funcionRender = renderizarPropietarios;
+                    const todasPropiedades = getPropiedades();
+                    
+                    datosFiltrados = datos;
+                    if (filtro !== 'todos') {
+                        // Lógica: Solo mostrar propietarios que tienen al menos una propiedad del tipo de filtro
+                        const propietariosConPropiedadesFiltradas = todasPropiedades
+                            .filter(prop => prop.tipoOperacion === filtro)
+                            .map(prop => prop.propietarioId);
+
+                        // Filtrar la lista de propietarios solo por aquellos que tienen el ID en la lista anterior
+                        const idSet = new Set(propietariosConPropiedadesFiltradas);
+                        datosFiltrados = datos.filter(propietario => 
+                            idSet.has(propietario.id)
+                        );
+                    }
+                } else {
+                    // Si hay un filtro de propietario activo, simplemente lo aplicamos de nuevo
+                    filterPropertiesByOwner(FILTRO_PROPIETARIO_ACTIVO);
+                    return; // Salimos para no re-renderizar doblemente
                 }
             } else if (entidad === 'clientes') {
                 datos = getClientes();
@@ -549,11 +726,11 @@
 
             funcionRender(datosFiltrados);
             
-            // Resaltar el botón activo del filtro
+            // Resaltar el botón activo del filtro principal
             const sectionId = `${entidad}-view`;
             const section = document.getElementById(sectionId);
             if(section) {
-                const buttons = section.querySelectorAll('.btn-filter');
+                const buttons = section.querySelectorAll(`#${entidad}-main-filters .btn-filter, .filter-controls:not(.owner-filter) .btn-filter`);
                 buttons.forEach(btn => {
                     if (btn.getAttribute('data-filter') === filtro) {
                         btn.classList.add('active-filter');
@@ -589,7 +766,10 @@
                 aplicarFiltroYRenderizar('propiedades');
             }
             if (viewId === 'propietarios-view') {
-                aplicarFiltroYRenderizar('propietarios');
+                // Llenar el select de propietarios
+                poblarFiltroPropietarios();
+                // Aplicar el filtro, que respeta el filtro de propietario activo si existe
+                aplicarFiltroYRenderizar('propietarios'); 
             }
             if (viewId === 'clientes-view') {
                 aplicarFiltroYRenderizar('clientes');
@@ -606,42 +786,58 @@
             formPropiedad.addEventListener('submit', (e) => {
                 e.preventDefault();
 
-                // 1. Crear nuevo Propietario
-                const propietarioId = generarID();
-                const nuevoPropietario = {
-                    id: propietarioId,
-                    nombre: document.getElementById('propPropietarioNombre').value,
-                    telefono: document.getElementById('propPropietarioTelefono').value,
-                    // preferencia eliminada, solo guardamos lo que queda
-                    observaciones: document.getElementById('propPropietarioObservaciones').value,
-                };
+                const telefonoNuevo = document.getElementById('propPropietarioTelefono').value;
+                const propietariosExistentes = getPropietarios();
+                const propietarioExistente = getPropietarioByTelefono(telefonoNuevo, propietariosExistentes);
                 
-                // 2. Crear nueva Propiedad, vinculándola al Propietario
+                let propietarioId;
+                let mensaje;
+                
+                if (propietarioExistente) {
+                    // *** ESCENARIO CLAVE: REUTILIZAR EL PROPIETARIO EXISTENTE ***
+                    propietarioId = propietarioExistente.id;
+                    mensaje = `Propiedad registrada y vinculada al propietario existente: ${propietarioExistente.nombre}.`;
+                } else {
+                    // *** ESCENARIO: CREAR NUEVO PROPIETARIO ***
+                    propietarioId = generarID();
+                    const nuevoPropietario = {
+                        id: propietarioId,
+                        nombre: document.getElementById('propPropietarioNombre').value,
+                        telefono: telefonoNuevo,
+                        observaciones: document.getElementById('propPropietarioObservaciones').value,
+                    };
+                    
+                    const propietarios = getPropietarios();
+                    propietarios.push(nuevoPropietario);
+                    savePropietarios(propietarios);
+                    
+                    mensaje = `Propiedad y Nuevo Propietario (${nuevoPropietario.nombre}) registrados con éxito.`;
+                }
+                
+                // 2. Crear nueva Propiedad, vinculándola al Propietario ID determinado arriba
                 const nuevaPropiedad = {
                     id: generarID(),
                     tipoOperacion: document.getElementById('tipoOperacion').value,
                     direccion: document.getElementById('direccion').value,
                     precio: parseFloat(document.getElementById('precio').value),
                     estado: document.getElementById('estado').value,
-                    // observaciones de propiedad eliminada
-                    observaciones: '', // Lo dejamos vacío o lo eliminamos, pero lo dejamos para compatibilidad
-                    // *** VINCULACIÓN CLAVE ***
+                    observaciones: '', 
                     propietarioId: propietarioId, 
                 };
 
-                // 3. Guardar ambas entidades
+                // 3. Guardar la Propiedad
                 const propiedades = getPropiedades();
                 propiedades.push(nuevaPropiedad);
                 savePropiedades(propiedades);
-                
-                const propietarios = getPropietarios();
-                propietarios.push(nuevoPropietario);
-                savePropietarios(propietarios);
 
                 // 4. Actualizar UI
+                showStatus(mensaje, 'success', 'statusMessage');
                 aplicarFiltroYRenderizar('propiedades'); 
                 formPropiedad.reset(); 
                 toggleForm('form-propiedad-container'); // Ocultar después de guardar
+                
+                // Asegurar que el filtro de propietarios se actualice
+                poblarFiltroPropietarios(); 
             });
             
             // --- Listener: Clientes ---
@@ -670,7 +866,7 @@
             
             // Inicializar renderizado al cargar
             aplicarFiltroYRenderizar('propiedades');
-            aplicarFiltroYRenderizar('propietarios');
+            aplicarFiltroYRenderizar('propietarios'); 
             aplicarFiltroYRenderizar('clientes');
         });
     </script>
