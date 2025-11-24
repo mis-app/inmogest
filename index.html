@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Inmobiliario Lite - CRM</title>
+    
+    <!-- ============================================== -->
+    <!-- ESTILOS CSS CONSOLIDADOS -->
+    <!-- ============================================== -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        main {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilos de las Vistas SPA */
+        .view { 
+            display: none; 
+            min-height: 400px; /* Para mejor visualización */
+        }
+        #home-view { 
+            display: block; 
+        }
+
+        /* Estilos de Formulario y Listado */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="number"], input[type="email"], select, textarea { /* Añado textarea al estilo */
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-dashboard {
+            background-color: #007bff;
+            color: white;
+            margin: 5px;
+        }
+        
+        .btn-add-toggle {
+            background-color: #28a745;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .view-nav button {
+            background-color: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            padding: 8px 12px;
+        }
+        
+        .view-nav .nav-active {
+            background-color: #ffe0b2; /* Color para indicar la vista actual */
+            font-weight: bold;
+        }
+        
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        ul li {
+            background-color: #f9f9f9;
+            margin-bottom: 8px;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 5px solid #007bff;
+            font-size: 0.9em;
+            word-wrap: break-word; /* Para asegurar que el texto no se salga del li */
+        }
+        
+        /* Tags de Diferenciación */
+        .tag-venta {
+            color: white;
+            background-color: #dc3545; /* Rojo */
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.8em;
+        }
+
+        .tag-alquiler {
+            color: white;
+            background-color: #007bff; /* Azul */
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 0.8em;
+        }
+
+        /* Estilo para las observaciones en la lista */
+        ul li small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        /* === ESTILOS PARA FILTROS === */
+        .filter-controls {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-filter {
+            background-color: #adb5bd; /* Gris claro */
+            color: #333;
+            padding: 8px 15px;
+            border: 1px solid #999;
+            border-radius: 4px;
+            transition: background-color 0.1s;
+        }
+
+        .btn-filter:hover {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .active-filter {
+            background-color: #007bff; /* Azul primario activo */
+            color: white;
+            font-weight: bold;
+            border-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 onclick="showView('home-view')" style="cursor: pointer;">🔑 Asistente Inmobiliario Lite</h1>
+        <p>Tu herramienta de gestión para Venta y Alquiler</p>
+    </header>
+
+    <main>
+        
+        <!-- ============================================== -->
+        <!-- VIEW 1: PÁGINA DE INICIO (HOME) -->
+        <!-- ============================================== -->
+        <section id="home-view" class="view">
+            <h2>🏠 Panel de Control Principal</h2>
+            <p>Selecciona la gestión que deseas realizar:</p>
+            <div class="dashboard-buttons">
+                <button onclick="showView('propiedades-view')" class="btn-dashboard">Propiedades</button>
+                <button onclick="showView('propietarios-view')" class="btn-dashboard">Propietarios</button>
+                <button onclick="showView('clientes-view')" class="btn-dashboard">Clientes</button>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VIEW 2: GESTIÓN DE PROPIEDADES (FORMULARIO CONSOLIDADO) -->
+        <!-- ============================================== -->
+        <section id="propiedades-view" class="view">
+            <h2>📝 Gestión de Captaciones</h2>
+
+            <!-- BARRA DE NAVEGACIÓN PERSISTENTE -->
+            <div class="view-nav">
+                <button onclick="showView('propiedades-view')" class="nav-active">Propiedades</button>
+                <button onclick="showView('propietarios-view')">Propietarios</button>
+                <button onclick="showView('clientes-view')">Clientes</button>
+                <button onclick="showView('home-view')" class="btn-back">🏠 Volver al Inicio</button>
+            </div>
+
+            <!-- CONTROL DE FORMULARIO -->
+            <button id="btnTogglePropiedad" onclick="toggleForm('form-propiedad-container')" class="btn-add-toggle">➕ Añadir Propiedad y Propietario</button>
+            
+            <div id="form-propiedad-container" style="display: none;">
+                <form id="formPropiedad">
+                    
+                    <!-- CAMPOS DE PROPIEDAD -->
+                    <h4>Datos de la Propiedad</h4>
+                    <div class="form-group"><label for="tipoOperacion">Tipo de Operación:</label><select id="tipoOperacion" required><option value="">-- Seleccionar --</option><option value="Venta">Venta</option><option value="Alquiler">Alquiler</option></select></div>
+                    <div class="form-group"><label for="direccion">Dirección:</label><input type="text" id="direccion" placeholder="C/ Ejemplo 123" required></div>
+                    <div class="form-group"><label for="precio">Precio (€):</label><input type="number" id="precio" placeholder="Ej: 350000" required></div>
+                    <div class="form-group"><label for="estado">Estado:</label><select id="estado" required><option value="Captada">Captada</option><option value="En Visitas">En Visitas</option><option value="Reservada">Reservada</option><option value="Vendida/Alquilada">Vendida/Alquilada</option></select></div>
+                    <!-- CAMPO DE OBSERVACIONES DE PROPIEDAD ELIMINADO -->
+
+                    <hr style="margin: 20px 0; border-top: 1px dashed #ccc;">
+                    
+                    <!-- CAMPOS DEL PROPIETARIO AHORA INCLUIDOS -->
+                    <h4>Datos del Propietario (Vinculado)</h4>
+                    <div class="form-group"><label for="propPropietarioNombre">Nombre del Propietario:</label><input type="text" id="propPropietarioNombre" required></div>
+                    <div class="form-group"><label for="propPropietarioTelefono">Teléfono:</label><input type="text" id="propPropietarioTelefono" placeholder="Ej: +34 600..." required></div>
+                    <!-- CAMPO DE PREFERENCIA DE PROPIETARIO ELIMINADO -->
+                    <div class="form-group"><label for="propPropietarioObservaciones">Observaciones:</label><textarea id="propPropietarioObservaciones" rows="3" placeholder="Observaciones sobre el trato o historial del propietario..."></textarea></div>
+                    
+                    <button type="submit" id="btnGuardar">Guardar Captación Completa</button>
+                </form>
+            </div>
+            
+            <hr>
+            <h3>🏠 Cartera de Propiedades (Listado)</h3>
+            
+            <!-- FILTROS DE PROPIEDADES -->
+            <div class="filter-controls">
+                <button onclick="setFilter('propiedades', 'Venta', this)" class="btn-filter" data-filter="Venta">Venta</button>
+                <button onclick="setFilter('propiedades', 'Alquiler', this)" class="btn-filter" data-filter="Alquiler">Alquiler</button>
+                <button onclick="setFilter('propiedades', 'todos', this)" class="btn-filter active-filter" data-filter="todos">Mostrar Todos</button>
+            </div>
+            
+            <ul id="listado"></ul>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VIEW 3: GESTIÓN DE PROPIETARIOS (SOLO LISTADO) -->
+        <!-- ============================================== -->
+        <section id="propietarios-view" class="view">
+            <h2>👤 Gestión de Propietarios</h2>
+
+            <!-- BARRA DE NAVEGACIÓN PERSISTENTE -->
+            <div class="view-nav">
+                <button onclick="showView('propiedades-view')">Propiedades</button>
+                <button onclick="showView('propietarios-view')" class="nav-active">Propietarios</button>
+                <button onclick="showView('clientes-view')">Clientes</button>
+                <button onclick="showView('home-view')" class="btn-back">🏠 Volver al Inicio</button>
+            </div>
+            
+            <!-- EL FORMULARIO DE AÑADIR PROPIETARIO FUE ELIMINADO DE AQUÍ -->
+            
+            <hr>
+            <h3>Listado de Propietarios</h3>
+
+            <!-- FILTROS DE PROPIETARIOS (Ajustados para filtrar por tipo de Propiedad asociada) -->
+            <div class="filter-controls">
+                <button onclick="setFilter('propietarios', 'Venta', this)" class="btn-filter" data-filter="Venta">Con Propiedades de Venta</button>
+                <button onclick="setFilter('propietarios', 'Alquiler', this)" class="btn-filter" data-filter="Alquiler">Con Propiedades de Alquiler</button>
+                <button onclick="setFilter('propietarios', 'todos', this)" class="btn-filter active-filter" data-filter="todos">Mostrar Todos</button>
+            </div>
+            
+            <ul id="listadoPropietarios"></ul>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VIEW 4: GESTIÓN DE CLIENTES -->
+        <!-- ============================================== -->
+        <section id="clientes-view" class="view">
+            <h2>👥 Gestión de Clientes</h2>
+            
+            <!-- BARRA DE NAVEGACIÓN PERSISTENTE -->
+            <div class="view-nav">
+                <button onclick="showView('propiedades-view')">Propiedades</button>
+                <button onclick="showView('propietarios-view')">Propietarios</button>
+                <button onclick="showView('clientes-view')" class="nav-active">Clientes</button>
+                <button onclick="showView('home-view')" class="btn-back">🏠 Volver al Inicio</button>
+            </div>
+
+            <!-- CONTROL DE FORMULARIO -->
+            <button id="btnToggleCliente" onclick="toggleForm('form-cliente-container')" class="btn-add-toggle">➕ Añadir Cliente</button>
+            
+            <div id="form-cliente-container" style="display: none;">
+                <form id="formCliente">
+                    <div class="form-group"><label for="clienteNombre">Nombre:</label><input type="text" id="clienteNombre" required></div>
+                    <div class="form-group"><label for="clienteTelefono">Teléfono:</label><input type="text" id="clienteTelefono" placeholder="Ej: +34 600..." required></div>
+                    <div class="form-group"><label for="clientePerfil">Perfil de Búsqueda:</label><select id="clientePerfil" required><option value="Comprador">Comprador</option><option value="Inquilino">Inquilino</option></select></div>
+                    <div class="form-group"><label for="clientePresupuesto">Presupuesto Máx. (€):</label><input type="number" id="clientePresupuesto" required></div>
+                    <!-- CAMPO OBSERVACIONES AÑADIDO -->
+                    <div class="form-group"><label for="clienteObservaciones">Observaciones:</label><textarea id="clienteObservaciones" rows="3" placeholder="Criterios específicos de búsqueda o historial de contacto..."></textarea></div>
+                    <button type="submit" id="btnGuardarCliente">Guardar Cliente</button>
+                </form>
+            </div>
+            
+            <hr>
+            <h3>Listado de Clientes</h3>
+
+            <!-- FILTROS DE CLIENTES -->
+            <div class="filter-controls">
+                <button onclick="setFilter('clientes', 'Comprador', this)" class="btn-filter" data-filter="Comprador">Comprador</button>
+                <button onclick="setFilter('clientes', 'Inquilino', this)" class="btn-filter" data-filter="Inquilino">Inquilino</button>
+                <button onclick="setFilter('clientes', 'todos', this)" class="btn-filter active-filter" data-filter="todos">Mostrar Todos</button>
+            </div>
+
+            <ul id="listadoClientes"></ul>
+        </section>
+
+    </main>
+
+    <!-- ============================================== -->
+    <!-- LÓGICA JAVASCRIPT CONSOLIDADADA -->
+    <!-- ============================================== -->
+    <script>
+        // ====================================================================
+        // 1. CONSTANTES Y UTILIDADES
+        // ====================================================================
+
+        const PROPIEDADES_KEY = 'propiedadesLite';
+        const PROPIETARIOS_KEY = 'propietariosLite';
+        const CLIENTES_KEY = 'clientesLite';
+
+        // Estado global para almacenar el filtro activo para cada vista
+        const FILTROS = {
+            propiedades: 'todos',
+            propietarios: 'todos',
+            clientes: 'todos'
+        };
+
+        function generarID() {
+            // Genera un ID único simple basado en el tiempo
+            // Usamos un número alto (ej. Date.now()) para IDs de LocalStorage
+            return Date.now(); 
+        }
+        
+        // Función para ocultar/mostrar formularios (TOGGLE)
+        function toggleForm(containerId) {
+            const container = document.getElementById(containerId);
+            const entityMap = {
+                'form-propiedad-container': 'Propiedad y Propietario',
+                'form-cliente-container': 'Cliente'
+            };
+            
+            const entityName = entityMap[containerId];
+            if (!entityName) return; // Si no es un contenedor con botón de toggle, salimos
+
+            // Calculamos el ID del botón dinámicamente
+            let buttonIdPart = containerId.replace('form-', '').replace('-container', '');
+            buttonIdPart = buttonIdPart.charAt(0).toUpperCase() + buttonIdPart.slice(1);
+            const button = document.getElementById(`btnToggle${buttonIdPart}`);
+            
+            if (container.style.display === 'none' || container.style.display === '') {
+                container.style.display = 'block';
+                button.textContent = `Ocultar Formulario de ${entityName}`;
+            } else {
+                container.style.display = 'none';
+                button.textContent = `➕ Añadir ${entityName}`;
+            }
+        }
+
+
+        // ====================================================================
+        // 2. FUNCIONES DE PERSISTENCIA (CRUD: Get/Save)
+        // ====================================================================
+
+        // Funciones para Propiedades
+        function getPropiedades() {
+            const data = localStorage.getItem(PROPIEDADES_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function savePropiedades(propiedades) {
+            localStorage.setItem(PROPIEDADES_KEY, JSON.stringify(propiedades));
+        }
+        
+        // Funciones para Propietarios
+        function getPropietarios() {
+            const data = localStorage.getItem(PROPIETARIOS_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function savePropietarios(propietarios) {
+            localStorage.setItem(PROPIETARIOS_KEY, JSON.stringify(propietarios));
+        }
+
+        // Función auxiliar para obtener un propietario por su ID
+        function getPropietarioById(id, todosPropietarios) {
+            // Se le pasa el array completo para evitar leer localStorage en cada iteración
+            return todosPropietarios.find(p => p.id === id);
+        }
+        
+        // Funciones para Clientes
+        function getClientes() {
+            const data = localStorage.getItem(CLIENTES_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveClientes(clientes) {
+            localStorage.setItem(CLIENTES_KEY, JSON.stringify(clientes));
+        }
+
+
+        // ====================================================================
+        // 3. FUNCIONES DE RENDERIZADO (Visualización)
+        // ====================================================================
+
+        function renderizarPropiedades(propiedadesAMostrar) {
+            const listadoUL = document.getElementById('listado');
+            if (!listadoUL) return; 
+            listadoUL.innerHTML = '';
+
+            if (propiedadesAMostrar.length === 0) {
+                listadoUL.innerHTML = '<li>No hay propiedades registradas con el filtro actual.</li>';
+                return;
+            }
+
+            // Traer todos los propietarios una sola vez para vincular el nombre
+            const todosPropietarios = getPropietarios();
+
+            propiedadesAMostrar.forEach(prop => {
+                const li = document.createElement('li');
+                const tipoClase = prop.tipoOperacion === 'Venta' ? 'tag-venta' : 'tag-alquiler';
+                
+                // Buscar el propietario vinculado
+                const propietario = getPropietarioById(prop.propietarioId, todosPropietarios);
+                const nombrePropietario = propietario ? 
+                    `<span style="color: #6c757d; font-size: 0.9em;">(Propietario: ${propietario.nombre})</span>` : 
+                    '<span style="color: #dc3545; font-size: 0.9em;">(Propietario Desconocido)</span>';
+
+                // Usamos la observación del Propietario (si existe) ya que la de propiedad fue eliminada
+                const observacionPropietario = propietario ? propietario.observaciones : '';
+
+                li.innerHTML = `
+                    <span class="${tipoClase}">[${prop.tipoOperacion}]</span>
+                    <strong>${prop.direccion}</strong> 
+                    - Precio: ${prop.precio.toLocaleString('es-ES')}€ 
+                    (Estado: ${prop.estado})
+                    ${nombrePropietario}
+                    ${observacionPropietario ? `<br><small>Observaciones: ${observacionPropietario}</small>` : ''}
+                `;
+                listadoUL.appendChild(li);
+            });
+        }
+
+        function renderizarPropietarios(propietariosAMostrar) {
+            const listadoUL = document.getElementById('listadoPropietarios'); 
+            if (!listadoUL) return; 
+            listadoUL.innerHTML = '';
+            
+            if (propietariosAMostrar.length === 0) {
+                listadoUL.innerHTML = '<li>No hay propietarios registrados con el filtro actual.</li>';
+                return;
+            }
+
+            propietariosAMostrar.forEach(p => {
+                const li = document.createElement('li'); // <<<< FIX: Crear el elemento li
+                // NOTA: Ya no hay 'preferencia', usamos un ícono genérico
+                const prefijo = '👤'; 
+                
+                // Mostrando Nombre, Teléfono y Observaciones (como Notas)
+                li.innerHTML = `${prefijo} <strong>${p.nombre}</strong> - Tf: ${p.telefono}
+                    ${p.observaciones ? `<br><small>Observaciones: ${p.observaciones}</small>` : ''}`;
+                listadoUL.appendChild(li);
+            });
+        }
+
+        function renderizarClientes(clientesAMostrar) {
+            const listadoUL = document.getElementById('listadoClientes'); 
+            if (!listadoUL) return;
+            listadoUL.innerHTML = '';
+            
+            if (clientesAMostrar.length === 0) {
+                listadoUL.innerHTML = '<li>No hay clientes registrados con el filtro actual.</li>';
+                return;
+            }
+
+            clientesAMostrar.forEach(c => {
+                const li = document.createElement('li');
+                const tipoClase = c.perfil === 'Comprador' ? '💰' : '📝';
+                li.innerHTML = `${tipoClase} <strong>${c.nombre}</strong> (Busca: ${c.perfil}) - Presupuesto: ${c.presupuestoMax.toLocaleString('es-ES')}€
+                    ${c.observaciones ? `<br><small>Observaciones: ${c.observaciones}</small>` : ''}`;
+                listadoUL.appendChild(li);
+            });
+        }
+        
+        // Función central para aplicar el filtro y llamar al renderizado
+        function aplicarFiltroYRenderizar(entidad) {
+            let datos;
+            let funcionRender;
+            let filtro = FILTROS[entidad];
+            let datosFiltrados;
+
+            if (entidad === 'propiedades') {
+                datos = getPropiedades();
+                funcionRender = renderizarPropiedades;
+                
+                datosFiltrados = datos;
+                if (filtro !== 'todos') {
+                    // Filtra propiedades por tipoOperacion
+                    datosFiltrados = datos.filter(item => item.tipoOperacion === filtro);
+                }
+            } else if (entidad === 'propietarios') {
+                datos = getPropietarios();
+                funcionRender = renderizarPropietarios;
+                const todasPropiedades = getPropiedades();
+                
+                datosFiltrados = datos;
+                if (filtro !== 'todos') {
+                    // Lógica: Solo mostrar propietarios que tienen al menos una propiedad del tipo de filtro
+                    const propietariosConPropiedadesFiltradas = todasPropiedades
+                        .filter(prop => prop.tipoOperacion === filtro)
+                        .map(prop => prop.propietarioId);
+
+                    // Filtrar la lista de propietarios solo por aquellos que tienen el ID en la lista anterior
+                    datosFiltrados = datos.filter(propietario => 
+                        propietariosConPropiedadesFiltradas.includes(propietario.id)
+                    );
+                }
+            } else if (entidad === 'clientes') {
+                datos = getClientes();
+                funcionRender = renderizarClientes;
+                
+                datosFiltrados = datos;
+                if (filtro !== 'todos') {
+                    // Filtra clientes por perfil
+                    datosFiltrados = datos.filter(item => item.perfil === filtro);
+                }
+            } else {
+                return;
+            }
+
+            funcionRender(datosFiltrados);
+            
+            // Resaltar el botón activo del filtro
+            const sectionId = `${entidad}-view`;
+            const section = document.getElementById(sectionId);
+            if(section) {
+                const buttons = section.querySelectorAll('.btn-filter');
+                buttons.forEach(btn => {
+                    if (btn.getAttribute('data-filter') === filtro) {
+                        btn.classList.add('active-filter');
+                    } else {
+                        btn.classList.remove('active-filter');
+                    }
+                });
+            }
+        }
+        
+        // Función para establecer el filtro y actualizar la UI
+        function setFilter(entidad, filtroValor) {
+            FILTROS[entidad] = filtroValor;
+            aplicarFiltroYRenderizar(entidad);
+        }
+
+
+        // ====================================================================
+        // 4. LÓGICA DE EJECUCIÓN (Navigation & Form Listeners)
+        // ====================================================================
+        
+        // Función global para cambiar la vista (NAVIGATION)
+        function showView(viewId) {
+            const views = document.querySelectorAll('.view');
+            views.forEach(view => {
+                view.style.display = 'none';
+            });
+            
+            document.getElementById(viewId).style.display = 'block';
+
+            // Aplicar el filtro actual al cambiar de vista
+            if (viewId === 'propiedades-view') {
+                aplicarFiltroYRenderizar('propiedades');
+            }
+            if (viewId === 'propietarios-view') {
+                aplicarFiltroYRenderizar('propietarios');
+            }
+            if (viewId === 'clientes-view') {
+                aplicarFiltroYRenderizar('clientes');
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Muestra la página de inicio al cargar
+            showView('home-view'); 
+            
+            // --- Listener: Propiedades (Guarda Propiedad Y Propietario) ---
+            const formPropiedad = document.getElementById('formPropiedad');
+            formPropiedad.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                // 1. Crear nuevo Propietario
+                const propietarioId = generarID();
+                const nuevoPropietario = {
+                    id: propietarioId,
+                    nombre: document.getElementById('propPropietarioNombre').value,
+                    telefono: document.getElementById('propPropietarioTelefono').value,
+                    // preferencia eliminada, solo guardamos lo que queda
+                    observaciones: document.getElementById('propPropietarioObservaciones').value,
+                };
+                
+                // 2. Crear nueva Propiedad, vinculándola al Propietario
+                const nuevaPropiedad = {
+                    id: generarID(),
+                    tipoOperacion: document.getElementById('tipoOperacion').value,
+                    direccion: document.getElementById('direccion').value,
+                    precio: parseFloat(document.getElementById('precio').value),
+                    estado: document.getElementById('estado').value,
+                    // observaciones de propiedad eliminada
+                    observaciones: '', // Lo dejamos vacío o lo eliminamos, pero lo dejamos para compatibilidad
+                    // *** VINCULACIÓN CLAVE ***
+                    propietarioId: propietarioId, 
+                };
+
+                // 3. Guardar ambas entidades
+                const propiedades = getPropiedades();
+                propiedades.push(nuevaPropiedad);
+                savePropiedades(propiedades);
+                
+                const propietarios = getPropietarios();
+                propietarios.push(nuevoPropietario);
+                savePropietarios(propietarios);
+
+                // 4. Actualizar UI
+                aplicarFiltroYRenderizar('propiedades'); 
+                formPropiedad.reset(); 
+                toggleForm('form-propiedad-container'); // Ocultar después de guardar
+            });
+            
+            // --- Listener: Clientes ---
+            const formCliente = document.getElementById('formCliente');
+            formCliente.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const nuevoCliente = {
+                    id: generarID(),
+                    nombre: document.getElementById('clienteNombre').value,
+                    telefono: document.getElementById('clienteTelefono').value,
+                    perfil: document.getElementById('clientePerfil').value,
+                    presupuestoMax: parseFloat(document.getElementById('clientePresupuesto').value),
+                    observaciones: document.getElementById('clienteObservaciones').value, 
+                };
+
+                const clientes = getClientes();
+                clientes.push(nuevoCliente);
+                saveClientes(clientes);
+
+                // Re-renderiza usando el filtro actual
+                aplicarFiltroYRenderizar('clientes');
+                formCliente.reset();
+                toggleForm('form-cliente-container'); // Ocultar después de guardar
+            });
+            
+            // Inicializar renderizado al cargar
+            aplicarFiltroYRenderizar('propiedades');
+            aplicarFiltroYRenderizar('propietarios');
+            aplicarFiltroYRenderizar('clientes');
+        });
+    </script>
+</body>
+</html>
